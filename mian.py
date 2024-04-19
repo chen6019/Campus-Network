@@ -121,6 +121,19 @@ root.title("登陆校园网")
 # 设置窗口大小
 root.geometry("435x270")
 
+# 创建一个图片对象
+# bg_image = tk.PhotoImage(file="background.png")  # 替换为你的图片文件路径
+
+# # 缩小图片，这里的2表示将图片的大小缩小为原来的1/2
+# bg_image = bg_image.subsample(2, 2)
+
+# # 创建一个标签，将图片对象设置为标签的背景
+# bg_label = tk.Label(root, image=bg_image)
+
+# # 将标签放置在窗口的左上角，将标签的大小设置为窗口的大小
+# bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+
 # 创建一个标签控件显示操作提示，并设置文本大小为15
 label_label = tk.Label(root, text="不重启和断网线，就不会掉线(除了服务器原因)", font=("微软雅黑", 15))
 label_label.place(x=5, y=15)
