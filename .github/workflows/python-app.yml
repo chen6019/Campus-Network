@@ -36,3 +36,8 @@ jobs:
       - name: Build with PyInstaller
         run: |
           pyinstaller -F -n 校园网 --noconsole mian.py
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: executable
+          path: dist/
