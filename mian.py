@@ -44,14 +44,14 @@ def login():
     else:
         login_info_label.config(text=f"登录失败{timestamp}")
     
-def update_time():
+# def update_time():
     
-    # 更新时间戳
-    timestamp = int(time.time() * 1000)
-    timestamp_label.config(text=f"当前时间戳(ms): {timestamp}")
+#     # 更新时间戳
+#     timestamp = int(time.time() * 1000)
+#     timestamp_label.config(text=f"当前时间戳(ms): {timestamp}")
 
-    # 每秒更新一次
-    root.after(1000, update_time)
+#     # 每秒更新一次
+#     root.after(1000, update_time)
 
 def save_info():
     # 获取当前exe程序的绝对路径
@@ -121,9 +121,9 @@ root.title("登陆校园网")
 # 设置窗口大小
 root.geometry("435x270")
 
-# 创建一个标签控件显示时间戳，并设置文本大小为15
-timestamp_label = tk.Label(root,  font=("微软雅黑", 15))
-timestamp_label.place(x=25, y=15)
+# 创建一个标签控件显示操作提示，并设置文本大小为15
+label_label = tk.Label(root, text="不重启和断网线，就不会掉线(除了服务器原因)", font=("微软雅黑", 15))
+label_label.place(x=5, y=15)
 
 # 创建一个标签控件作为用户名的提示，并设置文本大小为15
 user_label = tk.Label(root, text="用户名:", font=("微软雅黑", 15))
@@ -188,7 +188,7 @@ if os.path.exists('login_info.json'):
 if bool(auto_login_var.get()):
     login()
 # 开始更新时间
-update_time()
+# update_time()
 
 # 运行主事件循环
 root.mainloop()
