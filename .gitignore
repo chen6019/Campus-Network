@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 login_info.json
 .vscode/settings.json
+log.txt

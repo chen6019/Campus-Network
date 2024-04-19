@@ -8,6 +8,9 @@ import os
 import winshell
 
 def login():
+    # 显示"请稍后"消息
+    login_info_label.config(text="请稍后...")
+    root.update_idletasks()
 
     # 获取用户名和密码
     timestamp = time.time() * 1000
@@ -23,12 +26,20 @@ def login():
     if save_password or auto_login:
         save_info()
     
+    # 显示消息
+    login_info_label.config(text="马上就好！速度取决于您的网络速度...")
+    root.update_idletasks()
+    
     # 访问链接
     url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&callback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
     response = requests.get(url)
     
+    # 将返回值保存在log文件中
+    with open('log.txt', 'a') as f:
+        f.write(f"{response.text}\n\n")
     # 显示消息框
-    messagebox.showinfo("登录信息：", f"用户名: {username}, 密码: {password}, 保存密码: {save_password}, 返回值: {response.text}")
+    
+    messagebox.showinfo("登录信息：", f"用户名: {username}, 密码: {password}。\n点击确定即可！")
     
     # 检查返回值中是否包含"result":"ok"
     if '"result":"ok"' in response.text:
@@ -37,6 +48,7 @@ def login():
         login_info_label.config(text=f"登录失败{timestamp}")
     
 def update_time():
+    
     # 更新时间戳
     timestamp = int(time.time() * 1000)
     timestamp_label.config(text=f"当前时间戳(ms): {timestamp}")
@@ -45,6 +57,11 @@ def update_time():
     root.after(1000, update_time)
 
 def save_info():
+    # 获取当前exe程序的绝对路径
+    exe_path = os.path.realpath("登陆校园网.exe")
+    # 改变工作目录到exe文件所在的目录
+    os.chdir(os.path.dirname(exe_path))
+
     # 获取用户名和密码
     username = user_entry.get()
     password = password_entry.get()
@@ -59,9 +76,11 @@ def save_info():
     # 显示消息框
     login_info_label.config(text=f"保存成功{timestamp}")
 
+
+
 def set_auto_start():
     # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath("登陆校园网.exe")
+    exe_path = os.path.realpath("校园网.exe")
 
     # 获取"启动"文件夹的路径
     startup_folder = winshell.startup()
@@ -73,6 +92,7 @@ def set_auto_start():
     winshell.CreateShortcut(
         Path=shortcut_path,
         Target=exe_path,
+        StartIn=os.path.dirname(exe_path),  # 设置工作目录为exe文件所在的目录
         Icon=(exe_path, 0),
         Description="开机自动登陆校园网"
     )
@@ -121,7 +141,7 @@ password_label = tk.Label(root, text="密码:", font=("微软雅黑", 15))
 password_label.place(x=25, y=125)
 
 # 创建一个文本框控件用于输入密码
-password_entry = tk.Entry(root, font=("微软雅黑", 15))
+password_entry = tk.Entry(root, font=("微软雅黑", 15), show="*")
 password_entry.place(x=125, y=125)
 
 # 创建一个复选框控件作为保存密码的选项
@@ -157,6 +177,11 @@ remove_auto_start_button.place(x=275, y=185)
 # 如果存在保存的用户名和密码，自动填入
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
 if os.path.exists('login_info.json'):
+    # 获取当前exe程序的绝对路径
+    exe_path = os.path.realpath("登陆校园网.exe")
+    # 改变工作目录到exe文件所在的目录
+    os.chdir(os.path.dirname(exe_path))
+
     with open('login_info.json', 'r') as f:
         login_info = json.load(f)
         user_entry.insert(0, login_info['username'])  # 将文件中的用户名更新到用户输入框
