@@ -30,6 +30,7 @@ def login():
     # 访问链接
     url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&callback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
     response = requests.get(url)
+    #按需更改访问地址
     
     # 将返回值保存在log文件中
     with open('log.txt', 'a') as f:
