@@ -8,9 +8,6 @@ import os
 import winshell
 
 def login():
-    # 显示"请稍后"消息
-    login_info_label.config(text="请稍后...")
-    root.update_idletasks()
 
     # 获取用户名和密码
     timestamp = time.time() * 1000
@@ -27,7 +24,7 @@ def login():
         save_info()
     
     # 显示消息
-    login_info_label.config(text="马上就好！速度取决于您的网络速度...")
+    login_info_label.config(text="请稍后！速度取决于您的网络速度...")
     root.update_idletasks()
     
     # 访问链接
@@ -122,57 +119,57 @@ root = tk.Tk()
 root.title("登陆校园网")
 
 # 设置窗口大小
-root.geometry("430x270")
+root.geometry("435x270")
 
 # 创建一个标签控件显示时间戳，并设置文本大小为15
 timestamp_label = tk.Label(root,  font=("微软雅黑", 15))
-timestamp_label.place(x=25, y=25)
+timestamp_label.place(x=25, y=15)
 
 # 创建一个标签控件作为用户名的提示，并设置文本大小为15
 user_label = tk.Label(root, text="用户名:", font=("微软雅黑", 15))
-user_label.place(x=25, y=75)
+user_label.place(x=25, y=65)
 
 # 创建一个文本框控件用于输入用户名
 user_entry = tk.Entry(root, font=("微软雅黑", 15))
-user_entry.place(x=125, y=75)
+user_entry.place(x=125, y=65)
 
 # 创建一个标签控件作为密码的提示，并设置文本大小为15
 password_label = tk.Label(root, text="密码:", font=("微软雅黑", 15))
-password_label.place(x=25, y=125)
+password_label.place(x=25, y=115)
 
 # 创建一个文本框控件用于输入密码
 password_entry = tk.Entry(root, font=("微软雅黑", 15), show="*")
-password_entry.place(x=125, y=125)
+password_entry.place(x=125, y=115)
 
 # 创建一个复选框控件作为保存密码的选项
 save_password_var = tk.IntVar()
 save_password_checkbutton = tk.Checkbutton(root, text="保存密码", variable=save_password_var)
-save_password_checkbutton.place(x=125, y=155)
+save_password_checkbutton.place(x=125, y=145)
 
 # 创建一个复选框控件作为自动登录的选项
 auto_login_var = tk.IntVar()
 auto_login_checkbutton = tk.Checkbutton(root, text="自动登录", variable=auto_login_var)
-auto_login_checkbutton.place(x=225, y=155)
+auto_login_checkbutton.place(x=225, y=145)
 
 # 创建一个按钮控件作为登录按钮，并设置文本大小为15
 login_button = tk.Button(root, text="登录", font=("微软雅黑", 15), command=login)
-login_button.place(x=125, y=185)
+login_button.place(x=125, y=175)
 
 # 创建一个按钮控件作为保存按钮，并设置文本大小为15
 save_button = tk.Button(root, text="保存", font=("微软雅黑", 15), command=save_info)
-save_button.place(x=200, y=185)
+save_button.place(x=200, y=175)
 
 # 创建一个标签控件显示登录提示，并设置文本大小为15
 login_info_label = tk.Label(root, font=("微软雅黑", 15))
-login_info_label.place(x=30, y=235)
+login_info_label.place(x=30, y=225)
 
 # 创建一个按钮控件作为设置开机自启动的按钮，并设置文本大小为15
 auto_start_button = tk.Button(root, text="开机自启", font=("微软雅黑", 15), command=set_auto_start)
-auto_start_button.place(x=15, y=185)
+auto_start_button.place(x=15, y=175)
 
 # 创建一个按钮控件作为删除开机自启动的按钮，并设置文本大小为15
 remove_auto_start_button = tk.Button(root, text="删除开机自启", font=("微软雅黑", 15), command=remove_auto_start)
-remove_auto_start_button.place(x=275, y=185)
+remove_auto_start_button.place(x=275, y=175)
 
 # 如果存在保存的用户名和密码，自动填入
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
