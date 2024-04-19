@@ -39,5 +39,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          # name: executable
+          name: executable
           path: dist/校园网.exe
