@@ -35,7 +35,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Build with PyInstaller
         run: |
-          pyinstaller -F -n 校园网 --noconsole mian.py
+          pyinstaller -F -n 校园网 --noconsole main.py
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
