@@ -69,7 +69,7 @@ def set_auto_start():
     exe_path = os.path.abspath(sys.argv[0])
 
     # 创建任务计划
-    result=subprocess.call(f'schtasks /Create /SC ONSTART /TN "开机自动登陆校园网" /TR "{exe_path}" /F', shell=True)
+    result=subprocess.call(f'schtasks /Create /SC ONSTART /TN "开机自动登陆校园网" /TR "{exe_path}" /RU SYSTEM /F', shell=True)
 
     # 检查是否成功删除
     if result == 0:
