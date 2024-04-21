@@ -33,11 +33,7 @@ def login():
     response = requests.get(url)
     #按需更改访问地址
     
-    file_path = 'log.txt'
-    # 设置文件属性为隐藏
-    os.system(f'attrib +h {file_path}')
-    # 将返回值保存在log文件中
-    with open('log.txt', 'a') as f:
+    with open(file_path, 'a') as f:
         f.write(f"{response.text}\n\n")
 
     # 显示消息框
@@ -50,12 +46,8 @@ def login():
         login_info_label.config(text=f"登录失败{timestamp}")
     
 
+# 例如，在你的save_info函数中，你应该这样写：
 def save_info():
-    # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath(__file__)
-    # 改变工作目录到exe文件所在的目录
-    os.chdir(os.path.dirname(exe_path))
-
     # 获取用户名和密码
     username = user_entry.get()
     password = password_entry.get()
@@ -64,10 +56,11 @@ def save_info():
     auto_login = bool(auto_login_var.get())
 
     # 保存用户名和密码
-    with open('login_info.json', 'w') as f:
+    with open(login_info_path, 'w') as f:
         json.dump({'username': username, 'password': password, 'auto_login': auto_login}, f)
     # 显示消息框
     login_info_label.config(text=f"保存账号密码成功{timestamp}")
+
 
 
 
@@ -112,7 +105,7 @@ def check_and_set_auto_start():
         set_auto_start()
     else:
         save_info()
-        messagebox.showinfo("提示！","将以管理员权限重新运行！！\n以自动保存账号密码")
+        messagebox.showinfo("提示！","将以管理员权限重新运行！！\n已自动保存账号密码")
         # 如果不是管理员，那么就提升权限然后重新运行
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{__file__}" set_title', None, 0)
         # 关闭原窗口
@@ -130,6 +123,19 @@ else:
 # 设置窗口大小
 root.geometry("435x270")
 
+# 获取用户的应用数据目录
+appdata_dir = os.getenv('APPDATA')
+# 创建一个新的目录来存储你的程序的数据
+data_dir = os.path.join(appdata_dir, 'Campus Network')
+# 如果目录不存在，创建它
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+    # 设置目录属性为隐藏
+    # subprocess.run(['attrib', '+h', data_dir])
+
+# 修改你的代码，将所有的文件路径都改为新的目录下的路径
+file_path = os.path.join(data_dir, 'log.txt')
+login_info_path = os.path.join(data_dir, 'login_info.json')
 
 # 创建一个标签控件显示操作提示，并设置文本大小为15
 label_label = tk.Label(root, text="不重启和断网线，就不会掉线(除了服务器原因)", font=("微软雅黑", 15))
@@ -183,13 +189,13 @@ remove_auto_start_button.place(x=275, y=175)
 
 # 如果存在保存的用户名和密码，自动填入
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
-if os.path.exists('login_info.json'):
+if os.path.exists(login_info_path):
     # 获取当前exe程序的绝对路径
     exe_path = os.path.realpath(__file__)
     # 改变工作目录到exe文件所在的目录
     os.chdir(os.path.dirname(exe_path))
 
-    with open('login_info.json', 'r') as f:
+    with open(login_info_path, 'r') as f:
         login_info = json.load(f)
         user_entry.insert(0, login_info['username'])  # 将文件中的用户名更新到用户输入框
         password_entry.insert(0, login_info['password'])  # 将文件中的密码更新到密码输入框
