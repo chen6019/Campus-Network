@@ -66,7 +66,7 @@ def save_info():
 
 def set_auto_start():
     # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath(__file__)
+    exe_path = os.path.abspath(sys.argv[0])
 
     # 创建任务计划
     result=subprocess.call(f'schtasks /Create /SC ONSTART /TN "开机自动登陆校园网" /TR "{exe_path}" /F', shell=True)
@@ -190,11 +190,6 @@ remove_auto_start_button.place(x=275, y=175)
 # 如果存在保存的用户名和密码，自动填入
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
 if os.path.exists(login_info_path):
-    # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath(__file__)
-    # 改变工作目录到exe文件所在的目录
-    os.chdir(os.path.dirname(exe_path))
-
     with open(login_info_path, 'r') as f:
         login_info = json.load(f)
         user_entry.insert(0, login_info['username'])  # 将文件中的用户名更新到用户输入框
