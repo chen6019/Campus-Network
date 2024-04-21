@@ -7,7 +7,7 @@
 需要
 
 ```python
-pip install flake8 pyinstaller requests winshell pywin32
+pip install flake8 pyinstaller requests
 ```
 
 ## 搬运请注明出处,谢谢！
