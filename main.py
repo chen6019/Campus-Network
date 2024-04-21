@@ -10,6 +10,8 @@ import ctypes
 import win32com.client
 import threading
 
+def on_closing():
+    os._exit(0)
 def login():
 
     # 获取复选框的状态
@@ -150,7 +152,7 @@ def open_log_folder():
 
 # 创建主窗口
 root = tk.Tk()
-
+root.protocol("WM_DELETE_WINDOW", on_closing)
 #设置标题
 if is_admin():
     root.title("登录校园网 - 管理员")
