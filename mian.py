@@ -4,8 +4,9 @@ import time
 import os
 import json
 import requests
-import os
-import winshell
+import sys
+import subprocess
+import ctypes
 
 def login():
 
@@ -32,11 +33,14 @@ def login():
     response = requests.get(url)
     #按需更改访问地址
     
+    file_path = 'log.txt'
+    # 设置文件属性为隐藏
+    os.system(f'attrib +h {file_path}')
     # 将返回值保存在log文件中
     with open('log.txt', 'a') as f:
         f.write(f"{response.text}\n\n")
+
     # 显示消息框
-    
     messagebox.showinfo("登录信息：", f"用户名: {username}, 密码: {password}。\n点击确定即可！")
     
     # 检查返回值中是否包含"result":"ok"
@@ -45,18 +49,10 @@ def login():
     else:
         login_info_label.config(text=f"登录失败{timestamp}")
     
-# def update_time():
-    
-#     # 更新时间戳
-#     timestamp = int(time.time() * 1000)
-#     timestamp_label.config(text=f"当前时间戳(ms): {timestamp}")
-
-#     # 每秒更新一次
-#     root.after(1000, update_time)
 
 def save_info():
     # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath("登陆校园网.exe")
+    exe_path = os.path.realpath(__file__)
     # 改变工作目录到exe文件所在的目录
     os.chdir(os.path.dirname(exe_path))
 
@@ -70,69 +66,70 @@ def save_info():
     # 保存用户名和密码
     with open('login_info.json', 'w') as f:
         json.dump({'username': username, 'password': password, 'auto_login': auto_login}, f)
-
     # 显示消息框
-    login_info_label.config(text=f"保存成功{timestamp}")
+    login_info_label.config(text=f"保存账号密码成功{timestamp}")
 
 
 
 def set_auto_start():
     # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath("校园网.exe")
+    exe_path = os.path.realpath(__file__)
 
-    # 获取"启动"文件夹的路径
-    startup_folder = winshell.startup()
+    # 创建任务计划
+    result=subprocess.call(f'schtasks /Create /SC ONSTART /TN "开机自动登陆校园网" /TR "{exe_path}" /F', shell=True)
 
-    # 创建快捷方式的路径
-    shortcut_path = os.path.join(startup_folder, '登陆校园网.lnk')
-
-    # 创建快捷方式
-    winshell.CreateShortcut(
-        Path=shortcut_path,
-        Target=exe_path,
-        StartIn=os.path.dirname(exe_path),  # 设置工作目录为exe文件所在的目录
-        Icon=(exe_path, 0),
-        Description="开机自动登陆校园网"
-    )
-
+    # 检查是否成功删除
+    if result == 0:
+        login_info_label.config(text=f"创建开机自启动成功")
+    else:
+        login_info_label.config(text=f"创建开机自启动失败")
     # 显示消息框
     messagebox.showinfo("提示！","移动位置后要重新设置哦！！")
-    login_info_label.config(text=f"设置开机自启动成功")
 
 def remove_auto_start():
-    # 获取"启动"文件夹的路径
-    startup_folder = winshell.startup()
-
-    # 创建快捷方式的路径
-    shortcut_path = os.path.join(startup_folder, '登陆校园网.lnk')
-
-    # 如果快捷方式存在，则删除它
-    if os.path.exists(shortcut_path):
-        os.remove(shortcut_path)
-        login_info_label.config(text=f"删除开机自启动成功")
+    # 删除任务计划
+    # 删除开机自启动任务
+    delete_result = subprocess.call('schtasks /Delete /TN "开机自动登陆校园网" /F', shell=True)
+    
+    # 检查是否成功删除
+    if delete_result == 0:
+        login_info_label.config(text=f"关闭开机自启动成功")
     else:
-        login_info_label.config(text=f"开机自启动未设置")
+        login_info_label.config(text=f"关闭开机自启动失败")
+
+def set_window_title(title):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
+
+# 判断是否拥有管理员权限
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def check_and_set_auto_start():
+    if is_admin():
+        # 如果已经是管理员，那么就运行你的代码
+        set_auto_start()
+    else:
+        save_info()
+        messagebox.showinfo("提示！","将以管理员权限重新运行！！\n以自动保存账号密码")
+        # 如果不是管理员，那么就提升权限然后重新运行
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{__file__}" set_title', None, 0)
+        # 关闭原窗口
+        os._exit(0)
 
 # 创建主窗口
 root = tk.Tk()
 
-# 设置窗口标题
-root.title("登陆校园网")
+#设置标题
+if is_admin():
+    root.title("登陆校园网 - 管理员")
+else:
+    root.title("登陆校园网")
 
 # 设置窗口大小
 root.geometry("435x270")
-
-# 创建一个图片对象
-# bg_image = tk.PhotoImage(file="background.png")  # 替换为你的图片文件路径
-
-# # 缩小图片，这里的2表示将图片的大小缩小为原来的1/2
-# bg_image = bg_image.subsample(2, 2)
-
-# # 创建一个标签，将图片对象设置为标签的背景
-# bg_label = tk.Label(root, image=bg_image)
-
-# # 将标签放置在窗口的左上角，将标签的大小设置为窗口的大小
-# bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
 
 # 创建一个标签控件显示操作提示，并设置文本大小为15
@@ -178,7 +175,7 @@ login_info_label = tk.Label(root, font=("微软雅黑", 15))
 login_info_label.place(x=30, y=225)
 
 # 创建一个按钮控件作为设置开机自启动的按钮，并设置文本大小为15
-auto_start_button = tk.Button(root, text="开机自启", font=("微软雅黑", 15), command=set_auto_start)
+auto_start_button = tk.Button(root, text="开机自启", font=("微软雅黑", 15), command=check_and_set_auto_start)
 auto_start_button.place(x=15, y=175)
 
 # 创建一个按钮控件作为删除开机自启动的按钮，并设置文本大小为15
@@ -189,7 +186,7 @@ remove_auto_start_button.place(x=275, y=175)
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
 if os.path.exists('login_info.json'):
     # 获取当前exe程序的绝对路径
-    exe_path = os.path.realpath("登陆校园网.exe")
+    exe_path = os.path.realpath(__file__)
     # 改变工作目录到exe文件所在的目录
     os.chdir(os.path.dirname(exe_path))
 
