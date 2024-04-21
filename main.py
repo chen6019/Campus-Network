@@ -7,6 +7,7 @@ import requests
 import sys
 import subprocess
 import ctypes
+import win32com.client
 
 def login():
 
@@ -69,9 +70,28 @@ def set_auto_start():
     exe_path = os.path.abspath(sys.argv[0])
 
     # 创建任务计划
-    result=subprocess.call(f'schtasks /Create /SC ONSTART /TN "开机自动登陆校园网" /TR "{exe_path}" /RU SYSTEM /F', shell=True)
+    result=subprocess.call(f'schtasks /Create /SC ONLOGON /TN "开机登陆校园网" /TR "{exe_path}" /F', shell=True)
 
-    # 检查是否成功删除
+    # 创建任务计划服务对象
+    scheduler = win32com.client.Dispatch('Schedule.Service')
+    scheduler.Connect()
+
+    # 获取任务计划的根文件夹
+    root_folder = scheduler.GetFolder('\\')
+
+    # 获取任务计划
+    task_definition = root_folder.GetTask('开机登陆校园网').Definition
+
+    # 获取任务计划的设置
+    settings = task_definition.Settings
+
+    # 修改任务计划的属性
+    settings.DisallowStartIfOnBatteries = False
+    settings.StopIfGoingOnBatteries = False
+
+    # 保存修改后的任务计划
+    root_folder.RegisterTaskDefinition('开机登陆校园网', task_definition, 6, '', '', 3)
+    # 检查是否成功创建
     if result == 0:
         login_info_label.config(text=f"创建开机自启动成功")
     else:
@@ -81,7 +101,7 @@ def set_auto_start():
 
 def remove_auto_start():
     # 删除开机自启动任务
-    delete_result = subprocess.call('schtasks /Delete /TN "开机自动登陆校园网" /F', shell=True)
+    delete_result = subprocess.call('schtasks /Delete /TN "开机登陆校园网" /F', shell=True)
     
     # 检查是否成功删除
     if delete_result == 0:
