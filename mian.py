@@ -87,7 +87,6 @@ def set_auto_start():
     messagebox.showinfo("提示！","移动位置后要重新设置哦！！")
 
 def remove_auto_start():
-    # 删除任务计划
     # 删除开机自启动任务
     delete_result = subprocess.call('schtasks /Delete /TN "开机自动登陆校园网" /F', shell=True)
     
@@ -198,8 +197,6 @@ if os.path.exists('login_info.json'):
 # 如果自动登录选项被选中，则执行登录函数
 if bool(auto_login_var.get()):
     login()
-# 开始更新时间
-# update_time()
 
 # 运行主事件循环
 root.mainloop()
