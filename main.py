@@ -13,47 +13,63 @@ import threading
 def on_closing():
     os._exit(0)
 def login():
-
+    # 获取用户名和密码
+    username = user_entry.get()
+    password = password_entry.get()
     # 获取复选框的状态
     save_password = bool(save_password_var.get())
     auto_login = bool(auto_login_var.get())
 
     # 如果复选框被选中，保存用户名和密码
-    # 如果 save_password 或 auto_login 为 True，则调用保存信息函数
     if save_password or auto_login:
         save_info()
+
     # 显示消息
     login_info_label.config(text="正在登录，请稍后！\n速度取决于您的网络...")
-    root.update_idletasks()
+
     # 创建一个新的线程来进行网络请求
-    threading.Thread(target=do_request).start()
+    t = threading.Thread(target=do_request, args=(username, password))
+    t.start()
 
-def do_request():
-    # 获取用户名和密码
+    # messagebox.showinfo("开始登陆！", "开始执行登陆操作！\n日志将保存在log.txt中！")
+
+def get_url(username, password):
     timestamp = int(time.time() * 1000)
-    username = user_entry.get()
-    password = password_entry.get()
     url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&callback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
-    try:
-        response = requests.get(url)
-    except requests.exceptions.RequestException as e:
-        login_info_label.config(text=f"网络请求失败(登录失败): {str(e)}", font=("微软雅黑", 14))
-        with open(file_path, 'a') as f:
-            f.write(f"{str(e)}\n\n")
-            messagebox.showinfo("登陆失败","请检查网络连接！\n日志在log.txt")
-        return
-    #按需更改访问地址
-    with open(file_path, 'a') as f:
-        f.write(f"{response.text}\n\n")
+    return url
 
-    # 显示消息框
-    messagebox.showinfo("登录信息：", f"用户名: {username}, 密码: {password}。\n点击确定即可！")
+def send_request(url):
+    try:
+        with open(file_path, 'a') as f:
+            f.write(f"发送请求：\n{url}\n\n")
+        response = requests.get(url)
+        return response
+    except Exception as error:
+        return None, error
+
+def handle_response(response, error):
+    if error:
+        root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}", font=("微软雅黑", 14)))
+        with open(file_path, 'a') as f:
+            f.write(f"{str(error)}\n\n")
+        messagebox.showinfo("登陆失败", "请检查网络连接！\n日志在log.txt")
+        return
+
+    with open(file_path, 'a') as f:
+        f.write(f"返回值：\n{response.text}\n\n") # 将返回值写入文件
+
+    # 解析返回值
+    timestamp = int(time.time() * 1000)
     # 检查返回值中是否包含"result":"ok"
     if '"result":"ok"' in response.text:
-        login_info_label.config(text=f"登录成功{timestamp}",font=("微软雅黑", 18))
+        root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 18)))
     else:
-        login_info_label.config(text=f"登录失败{timestamp}",font=("微软雅黑", 18))
+        root.after(0, lambda: login_info_label.config(text=f"登录失败{timestamp}", font=("微软雅黑", 18)))
 
+def do_request(username, password):
+    url = get_url(username, password)
+    response, error = send_request(url)
+    handle_response(response, error)
 # 例如，在你的save_info函数中，你应该这样写：
 def save_info():
     # 获取用户名和密码
