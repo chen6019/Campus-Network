@@ -64,7 +64,7 @@ def handle_response(response, error):
     if '"result":"ok"' in response.text:
         root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 18)))
     else:
-        root.after(0, lambda: login_info_label.config(text=f"登录失败{timestamp}", font=("微软雅黑", 18)))
+        root.after(0, lambda: login_info_label.config(text=f"登录失败{response}", font=("微软雅黑", 18)))
 
 def do_request(username, password):
     url = get_url(username, password)
@@ -118,12 +118,14 @@ def set_auto_start():
         login_info_label.config(text=f"创建开机自启动失败")
     # 显示消息框
     messagebox.showinfo("提示！","移动位置后要重新设置哦！！")
-
-def check_and_remove_auto_start():
-    if is_admin():
-        # 如果已经是管理员，那么就运行
-        remove_auto_start()
+    # 在设置任务后，检查任务是否存在，然后更新按钮的文本
+    if check_task_exists("开机登陆校园网"):
+        auto_start_button.config(text="关开机自启", command=remove_auto_start)
     else:
+        auto_start_button.config(text="开机自启", command=set_auto_start)
+    auto_start_button.update_idletasks()
+
+def Get_administrator_privileges():
         save_info()
         messagebox.showinfo("提示！","将以管理员权限重新运行！！\n已自动保存账号密码")
         # 如果不是管理员，那么就提升权限然后重新运行
@@ -132,14 +134,22 @@ def check_and_remove_auto_start():
         os._exit(0)
 
 def remove_auto_start():
-    # 删除开机自启动任务
-    delete_result = subprocess.call('schtasks /Delete /TN "开机登陆校园网" /F', shell=True)
+    # 弹出询问框，询问用户是否要删除任务
+    if messagebox.askyesno("确定？", "你确定要删除开机自启动任务吗？"):
+        # 用户点击 "Yes"，删除任务
+        delete_result = subprocess.call('schtasks /Delete /TN "开机登陆校园网" /F', shell=True)
     
     # 检查是否成功删除
     if delete_result == 0:
         login_info_label.config(text=f"关闭开机自启动成功")
     else:
         login_info_label.config(text=f"关闭开机自启动失败")
+    # 在删除任务后，检查任务是否存在，然后更新按钮的文本
+    if check_task_exists("开机登陆校园网"):
+        auto_start_button.config(text="关开机自启", command=remove_auto_start)
+    else:
+        auto_start_button.config(text="开机自启", command=set_auto_start)
+    auto_start_button.update_idletasks()
 
 def set_window_title(title):
     ctypes.windll.kernel32.SetConsoleTitleW(title)
@@ -165,6 +175,15 @@ def check_and_set_auto_start():
         
 def open_log_folder():
     os.startfile(data_dir)
+#检查是否创建自启动计划
+def check_task_exists(task_name):
+    scheduler = win32com.client.Dispatch('Schedule.Service')
+    scheduler.Connect()
+    root_folder = scheduler.GetFolder('\\')
+    for task in root_folder.GetTasks(0):
+        if task.Name == task_name:
+            return True
+    return False
 
 # 创建主窗口
 root = tk.Tk()
@@ -176,7 +195,7 @@ else:
     root.title("登录校园网")
 
 # 设置窗口大小
-root.geometry("435x285")
+root.geometry("400x290")
 
 # 获取用户的应用数据目录
 appdata_dir = os.getenv('APPDATA')
@@ -194,10 +213,10 @@ login_info_path = os.path.join(data_dir, 'login_info.json')
 
 # 创建一个标签控件显示操作提示，并设置文本大小为15
 label_label = tk.Label(root, text="不重启和断网线\n就不会掉线(除了服务器原因)", font=("微软雅黑", 14))
-label_label.place(x=15, y=5)
+label_label.place(x=55, y=5)
 
-open_log_button = tk.Button(root, text="打开日志文件夹", command=open_log_folder, font=("微软雅黑", 14))
-open_log_button.place(x=270, y=10)
+open_log_button = tk.Button(root, text="打开日志", command=open_log_folder, font=("微软雅黑", 14))
+open_log_button.place(x=10, y=175)
 
 # 创建一个标签控件作为用户名的提示，并设置文本大小为15
 user_label = tk.Label(root, text="用户名:", font=("微软雅黑", 14))
@@ -234,28 +253,26 @@ save_button = tk.Button(root, text="保存", font=("微软雅黑", 14), command=
 save_button.place(x=200, y=175)
 
 # 创建一个标签控件显示登录提示，并设置文本大小为15
-login_info_label = tk.Label(root, font=("微软雅黑", 14),wraplength=400)
-login_info_label.place(x=10, y=225)
+login_info_label = tk.Label(root, font=("微软雅黑", 14),wraplength=360)
+login_info_label.place(x=15, y=225)
 
 if is_admin():
-    login_info_label.config(text=f"当前拥有“管理员权限”谨慎操作\n可点击“开机自启”设置开机自启动")
+    login_info_label.config(text=f"当前拥有“管理员权限”谨慎操作\n可点击“开机自启”或“关闭开机自启”设置")
 else:
-    login_info_label.config(text=f"需要“管理员权限”才能设置开机自启\n点击任意“获取权限”按钮或手动获取权限")
+    login_info_label.config(text=f"需要“管理员权限”才能设置开机自启\n点击“获取权限”按钮或手动获取权限")
     
-# 创建一个按钮控件作为设置开机自启动的按钮，并设置文本大小为15
-auto_start_button = tk.Button(root, font=("微软雅黑", 14), command=check_and_set_auto_start)
-auto_start_button.place(x=15, y=175)
+# 创建一个按钮，并设置文本大小为15
+auto_start_button = tk.Button(root, font=("微软雅黑", 14))
+auto_start_button.place(x=275, y=175)
 
-# 创建一个按钮控件作为删除开机自启动的按钮，并设置文本大小为15
-remove_auto_start_button = tk.Button(root, font=("微软雅黑", 14), command=check_and_remove_auto_start)
-remove_auto_start_button.place(x=275, y=175)
 
 if is_admin():
-    auto_start_button.config(text="开机自启")
-    remove_auto_start_button.config(text="删除开机自启")
+    if check_task_exists("开机登陆校园网"):
+        auto_start_button.config(text="关开机自启",command=remove_auto_start)
+    else:
+        auto_start_button.config(text="开机自启",command=set_auto_start)
 else:
-    auto_start_button.config(text="获取权限")
-    remove_auto_start_button.config(text="获取权限")
+    auto_start_button.config(text="获取权限",command=Get_administrator_privileges)
 
 # 如果存在保存的用户名和密码，自动填入
 # 如果存在'login_info.json'文件，则读取文件内容并更新用户输入和自动登录选项
