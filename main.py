@@ -253,11 +253,11 @@ save_button = tk.Button(root, text="保存", font=("微软雅黑", 14), command=
 save_button.place(x=200, y=175)
 
 # 创建一个标签控件显示登录提示，并设置文本大小为15
-login_info_label = tk.Label(root, font=("微软雅黑", 14),wraplength=360)
+login_info_label = tk.Label(root, font=("微软雅黑", 14),wraplength=370)
 login_info_label.place(x=15, y=225)
 
 if is_admin():
-    login_info_label.config(text=f"当前拥有“管理员权限”谨慎操作\n可点击“开机自启”或“关闭开机自启”设置")
+    login_info_label.config(text=f"当前拥有“管理员权限”谨慎操作\n点击“开机自启”或“关闭开机自启”设置")
 else:
     login_info_label.config(text=f"需要“管理员权限”才能设置开机自启\n点击“获取权限”按钮或手动获取权限")
     
