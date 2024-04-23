@@ -43,7 +43,7 @@ def send_request(url):
         with open(file_path, 'a') as f:
             f.write(f"发送请求：\n{url}\n\n")
         response = requests.get(url)
-        return response
+        return response.content,None
     except Exception as error:
         return None, error
 
@@ -56,12 +56,12 @@ def handle_response(response, error):
         return
 
     with open(file_path, 'a') as f:
-        f.write(f"返回值：\n{response.text}\n\n") # 将返回值写入文件
+        f.write(f"返回值：\n{response}\n\n") # 将返回值写入文件
 
     # 解析返回值
     timestamp = int(time.time() * 1000)
     # 检查返回值中是否包含"result":"ok"
-    if '"result":"ok"' in response.text:
+    if b'"result":"ok"' in response:
         root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 18)))
     else:
         root.after(0, lambda: login_info_label.config(text=f"登录失败{response}", font=("微软雅黑", 18)))
