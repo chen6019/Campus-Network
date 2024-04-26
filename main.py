@@ -43,13 +43,16 @@ def send_request(url):
         with open(file_path, 'a') as f:
             f.write(f"发送请求：\n{url}\n\n")
         response = requests.get(url)
+        with open(file_path, 'a') as f:
+            f.write(f"发送请求：成功！等待返回结果...\n\n")
+        root.after(0, lambda: login_info_label.config(text=f"发送请求：成功！等待返回结果..."))
         return response.content,None
     except Exception as error:
         return None, error
 
 def handle_response(response, error):
     if error:
-        root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}", font=("微软雅黑", 14)))
+        root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}"))
         with open(file_path, 'a') as f:
             f.write(f"{str(error)}\n\n")
         messagebox.showinfo("登陆失败", "请检查网络连接！\n日志在log.txt")
@@ -62,9 +65,9 @@ def handle_response(response, error):
     timestamp = int(time.time() * 1000)
     # 检查返回值中是否包含"result":"ok"
     if b'"result":"ok"' in response:
-        root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 18)))
+        root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 20)))
     else:
-        root.after(0, lambda: login_info_label.config(text=f"登录失败{response}", font=("微软雅黑", 18)))
+        root.after(0, lambda: login_info_label.config(text=f"登录失败{response}", font=("微软雅黑", 20)))
 
 def do_request(username, password):
     url = get_url(username, password)
