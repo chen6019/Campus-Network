@@ -13,7 +13,8 @@ import threading
 def on_closing():
     with open(file_path, 'a') as f:
         f.write(f"执行退出程序！\n\n\n\n")
-    os._exit(0)
+    root.quit()
+    sys.exit()
 def login():
     # 获取用户名和密码
     username = user_entry.get()
