@@ -12,7 +12,7 @@ import threading
 
 def on_closing():
     with open(file_path, 'a') as f:
-            f.write(f"执行退出程序！\n\n\n\n")
+        f.write(f"执行退出程序！\n\n\n\n")
     os._exit(0)
 def login():
     # 获取用户名和密码
@@ -261,7 +261,7 @@ password_label.place(x=25, y=115)
 password_entry = tk.Entry(root, font=("微软雅黑", 14), show="*")
 password_entry.place(x=125, y=115)
 
-# 创建一个复选框控件作为自动登录的选项
+# 创建一个复选框控件作为自动退出的选项
 opt_out_var = tk.IntVar()
 opt_out_checkbutton = tk.Checkbutton(root, text="自动退出", variable=opt_out_var)
 opt_out_checkbutton.place(x=15, y=145)
