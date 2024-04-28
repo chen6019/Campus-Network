@@ -4,10 +4,10 @@
 
 原理：向服务器发送单点登录的get请求，进行登陆，并分析返回值做出相应操作
 
-### 详情和依赖请看 actions 可以直接下载打包好的exe文件使用
+### 详情看 actions 可以直接下载打包好的exe文件使用
 
 
-需要
+需要依赖
 
 ```python
 pip install flake8 pyinstaller requests pywin32
