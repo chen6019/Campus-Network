@@ -1,3 +1,4 @@
+import shlex
 import tkinter as tk
 import tkinter.messagebox as messagebox
 import time
@@ -110,9 +111,9 @@ def check_task():
 def set_auto_start():
     # 获取当前exe程序的绝对路径
     exe_path = os.path.abspath(sys.argv[0])
-
+    quoted_exe_path = shlex.quote(exe_path)
     # 创建任务计划
-    result=subprocess.call(f'schtasks /Create /SC ONLOGON /TN "开机登陆校园网" /TR "{exe_path}" /F', shell=True)
+    result=subprocess.call(f'schtasks /Create /SC ONLOGON /TN "开机登陆校园网" /TR "{quoted_exe_path}" /F', shell=True)
 
     scheduler = win32com.client.Dispatch('Schedule.Service')
     scheduler.Connect()
