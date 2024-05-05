@@ -10,10 +10,10 @@ import subprocess
 import ctypes
 import win32com.client
 import threading
+import logging
 
 def on_closing():
-    with open(file_path, 'a') as f:
-        f.write(f"执行退出程序！\n\n\n\n")
+    logger.info("执行退出程序！\n")
     root.quit()
     sys.exit()
 def login():
@@ -40,11 +40,9 @@ def get_url(username, password):
 
 def send_request(url):
     try:
-        with open(file_path, 'a') as f:
-            f.write(f"发送请求：\n{url}\n\n")
+        logger.info(f"发送请求：{url}\n")
         response = requests.get(url)
-        with open(file_path, 'a') as f:
-            f.write(f"发送请求：成功！等待返回结果...\n\n")
+        logger.info("发送请求：成功！等待返回结果...\n")
         root.after(0, lambda: login_info_label.config(text=f"发送请求：成功！等待返回结果..."))
         return response.content,None
     except Exception as error:
@@ -53,13 +51,11 @@ def send_request(url):
 def handle_response(response, error):
     if error:
         root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}"))
-        with open(file_path, 'a') as f:
-            f.write(f"{str(error)}\n\n")
+        logger.error(f"登录失败:{str(error)}\n\n")
         messagebox.showinfo("登陆失败", "请检查网络连接！\n日志在log.txt")
         return
 
-    with open(file_path, 'a') as f:
-        f.write(f"返回值：\n{response}\n\n") # 将返回值写入文件
+    logger.info(f"返回值：\n{response}\n")
 
     timestamp = int(time.time() * 1000)
     # 检查返回值中是否包含"result":"ok"
@@ -175,10 +171,10 @@ def check_task_exists(task_name):
     return False
 
 # 文件过大时截断文件
-def truncate_large_file(file_path, max_size=1024*1024*20):
+def truncate_large_file(file_path, max_size=1024*1024*50):
     if os.path.getsize(file_path) > max_size:
         with open(file_path, 'w') as f:
-            f.truncate(0)
+            pass
 
 # 创建主窗口
 root = tk.Tk()
@@ -196,7 +192,27 @@ data_dir = os.path.join(appdata_dir, 'Campus Network')
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
+# 创建一个logger
+logger = logging.getLogger('my_logger')
+logger.setLevel(logging.DEBUG)  # 设置日志级别
+
+# 创建一个handler，用于写入日志文件
 file_path = os.path.join(data_dir, 'log.txt')
+file_handler = logging.FileHandler(file_path)
+file_handler.setLevel(logging.DEBUG)
+# 创建一个handler，用于输出到控制台
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+# 定义handler的输出格式
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# 给logger添加handler
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
 login_info_path = os.path.join(data_dir, 'login_info.json')
 
 truncate_large_file(file_path)
