@@ -63,10 +63,14 @@ def handle_response(response, error):
         if opt_out_var.get():
             countdown(4)
         else:
-            root.after(0, lambda: login_info_label.config(text=f"登录成功{timestamp}", font=("微软雅黑", 22)))
+            root.after(0, lambda: login_info_label.config(text=f"登录成功！详情：{timestamp}", font=("微软雅黑", 22)))
+    if b'"result":"fail"' in response:
+        root.after(0, lambda: login_info_label.config(text=f"登录失败,服务器拒绝登陆！详情：{response}", font=("微软雅黑", 16)))
+    if b'"result":"no"' in response:
+        root.after(0, lambda: login_info_label.config(text=f"登录失败,账号或密码错误！详情：{response}", font=("微软雅黑", 16)))
     else:
-        root.after(0, lambda: login_info_label.config(text=f"登录失败{response}", font=("微软雅黑", 16)))
-        
+        root.after(0, lambda: login_info_label.config(text=f"登录失败,未知错误！详情：{response}", font=("微软雅黑", 16)))
+    
 def countdown(seconds):
     if seconds > 0:
         login_info_label.config(text=f"登录成功！\n即将在{seconds-1}秒后退出程序！", font=("微软雅黑", 17))
