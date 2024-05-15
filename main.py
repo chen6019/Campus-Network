@@ -12,9 +12,19 @@ import win32com.client
 import threading
 import logging
 
+# 创建一个命名的互斥体
+mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "dlxyw_mutex")
+
+# 检查互斥体是否已经存在
+if ctypes.windll.kernel32.GetLastError() == 183:
+    messagebox.showerror("错误", "应用程序已在运行。")
+    sys.exit()
+
 def on_closing():
     logger.info("执行退出程序！\n")
     root.quit()
+    # 释放互斥体
+    ctypes.windll.kernel32.ReleaseMutex(mutex)
     sys.exit()
 def login():
     # 获取用户名和密码
@@ -31,6 +41,7 @@ def login():
 
     # 创建一个新的线程来进行网络请求
     t = threading.Thread(target=do_request, args=(username, password))
+    t.daemon = True
     t.start()
 
 def get_url(username, password):
@@ -52,7 +63,7 @@ def handle_response(response, error):
     if error:
         root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}"))
         logger.error(f"登录失败:{str(error)}\n\n")
-        messagebox.showinfo("登陆失败", "请检查网络连接！\n日志在log.txt")
+        messagebox.showinfo("登陆失败", "请检查网络连接！\n日志：log.txt")
         return
 
     logger.info(f"返回值：\n{response}\n")
@@ -133,7 +144,7 @@ def set_auto_start():
         login_info_label.config(text=f"创建开机自启动成功")
     else:
         login_info_label.config(text=f"创建开机自启动失败")
-    messagebox.showinfo("提示！","移动位置后要重新设置哦！！")
+    messagebox.showinfo("提示！","移动文件位置后要重新设置哦！！")
     check_task()
 
 def Get_administrator_privileges():
@@ -287,3 +298,5 @@ if bool(auto_login_var.get()):
     login()
 
 root.mainloop()
+# 释放互斥体
+ctypes.windll.kernel32.ReleaseMutex(mutex)
