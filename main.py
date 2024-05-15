@@ -74,10 +74,10 @@ def handle_response(response, error):
         if opt_out_var.get():
             countdown(4)
         else:
-            root.after(0, lambda: login_info_label.config(text=f"登录成功！详情：{timestamp}", font=("微软雅黑", 22)))
-    if b'"result":"fail"' in response:
+            root.after(0, lambda: login_info_label.config(text=f"登录成功！", font=("微软雅黑", 30)))
+    elif b'"result":"fail"' in response:
         root.after(0, lambda: login_info_label.config(text=f"登录失败,服务器拒绝登陆！详情：{response}", font=("微软雅黑", 16)))
-    if b'"result":"no"' in response:
+    elif b'"result":"no"' in response:
         root.after(0, lambda: login_info_label.config(text=f"登录失败,账号或密码错误！详情：{response}", font=("微软雅黑", 16)))
     else:
         root.after(0, lambda: login_info_label.config(text=f"登录失败,未知错误！详情：{response}", font=("微软雅黑", 16)))
