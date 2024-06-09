@@ -36,11 +36,9 @@ def login():
 
     if save_password or auto_login:
         save_info()
-        
-    login_button.config(state=tk.DISABLED)
 
     login_info_label.config(text="正在登录，请稍后！\n速度取决于您的网络...", font=("微软雅黑", 16))
-    
+
     # 创建一个新的线程来进行网络请求
     t = threading.Thread(target=do_request, args=(username, password))
     t.daemon = True
@@ -66,7 +64,6 @@ def handle_response(response, error):
         root.after(0, lambda: login_info_label.config(text=f"网络请求失败(登录失败): {str(error)}"))
         logger.error(f"登录失败:{str(error)}\n\n")
         messagebox.showinfo("登陆失败", "请检查网络连接！\n日志：log.txt")
-        login_button.config(state=tk.NORMAL)
         return
 
     logger.info(f"返回值：\n{response}\n")
@@ -84,7 +81,6 @@ def handle_response(response, error):
         root.after(0, lambda: login_info_label.config(text=f"登录失败,账号或密码错误！详情：{response}", font=("微软雅黑", 16)))
     else:
         root.after(0, lambda: login_info_label.config(text=f"登录失败,未知错误！详情：{response}", font=("微软雅黑", 16)))
-    login_button.config(state=tk.NORMAL)
     
 def countdown(seconds):
     if seconds > 0:
