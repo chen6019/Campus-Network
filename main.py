@@ -161,7 +161,6 @@ def remove_auto_start():
     # 弹出询问框，询问是否要删除任务
     if messagebox.askyesno("确定？", "你确定要删除开机自启动任务吗？"):
         delete_result = subprocess.call('schtasks /Delete /TN "开机登陆校园网" /F', shell=True)
-    
     if delete_result == 0:
         login_info_label.config(text=f"关闭开机自启动成功")
     else:
