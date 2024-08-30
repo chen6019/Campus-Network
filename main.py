@@ -30,36 +30,73 @@ def login():
     # 获取用户名和密码
     username = user_entry.get()
     password = password_entry.get()
+    Link = Link_mode_entry.get()
     # 获取复选框的状态
     save_password = bool(save_password_var.get())
     auto_login = bool(auto_login_var.get())
+    Link_mode = bool(Link_mode_var.get())
 
     if save_password or auto_login:
         save_info()
         
     login_button.config(state=tk.DISABLED)
-
-    login_info_label.config(text="正在登录，请稍后！\n速度取决于您的网络...", font=("微软雅黑", 16))
     
-    # 创建一个新的线程来进行网络请求
-    t = threading.Thread(target=do_request, args=(username, password))
-    t.daemon = True
-    t.start()
+    if Link_mode:
+        if Link == "":
+            messagebox.showinfo("错误", "请输入链接！")
+            login_info_label.config(text="请输入链接！", font=("微软雅黑", 26))
+            login_button.config(state=tk.NORMAL)
+        else:
+            messagebox.showinfo("当前为链接模式",Link)
+            login_info_label.config(text="正在登录，请稍后！\n速度取决于您的网络...", font=("微软雅黑", 16))
+            url = f"{Link}"
+            t = threading.Thread(target=send_request, args=(url,))
+            t.daemon = True
+            t.start()
+    else:
+        # 创建一个新的线程来进行网络请求
+        login_info_label.config(text="正在登录，请稍后！\n速度取决于您的网络...", font=("微软雅黑", 16))
+        t = threading.Thread(target=do_request, args=(username, password))
+        t.daemon = True
+        t.start()
 
 def get_url(username, password):
     timestamp = int(time.time() * 1000)
-    url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&callback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
+    url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&cal`lback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
     return url
 
 def send_request(url):
+    Link_mode = bool(Link_mode_var.get())
     try:
         logger.info(f"发送请求：{url}\n")
-        response = requests.get(url)
         logger.info("发送请求：成功！等待返回结果...\n")
         root.after(0, lambda: login_info_label.config(text=f"发送请求：成功！等待返回结果..."))
-        return response.content,None
+        response = requests.get(url)
+        if Link_mode:
+            handle_response(response.content, None)
+        else:
+            return response.content,None
     except Exception as error:
-        return None, error
+        if Link_mode:
+            handle_response(None,error)
+        else:
+            return None, error
+
+# #链接模式处理
+# def Link_send_request(response):
+#     # 解析响应内容
+#     data = response.json()
+#     messagebox.showinfo("返回值",data["message"])
+#     # 检查HTTP状态码
+#     if response.status_code == 200:
+#         # 处理成功的响应
+#         root.after(0, lambda: login_info_label.config(text=f"登录成功: {data['message']}"))
+#         logger.info(f"登录成功:{data['message']}\n\n")
+#     else:
+#         # 处理错误的响应
+#         root.after(0, lambda: login_info_label.config(text=f"登录失败: {data['error']}"))
+#         logger.error(f"登录失败:{data['error']}\n\n")
+#     login_button.config(state=tk.NORMAL)    
 
 def handle_response(response, error):
     if error:
@@ -71,7 +108,6 @@ def handle_response(response, error):
 
     logger.info(f"返回值：\n{response}\n")
 
-    timestamp = int(time.time() * 1000)
     # 检查返回值中是否包含"result":"ok"
     if b'"result":"ok"' in response:
         if opt_out_var.get():
@@ -102,17 +138,18 @@ def save_info():
     # 获取用户名和密码
     username = user_entry.get()
     password = password_entry.get()
+    Link = Link_mode_entry.get()
     timestamp = int(time.time() * 1000)
     # 获取复选框的状态
     auto_login = bool(auto_login_var.get())
-    global opt_out_var
     opt_out = bool(opt_out_var.get())
-    global save_password_var
     save_password = bool(save_password_var.get())
+    Link_mode = bool(Link_mode_var.get())
+    
     
 
     with open(login_info_path, 'w') as f:
-        json.dump({'username': username, 'password': password,  'opt_out': opt_out, 'save_password': save_password,'auto_login': auto_login}, f)
+        json.dump({'username': username, 'password': password, 'Link':Link, 'Link_mode':Link_mode,'opt_out': opt_out, 'save_password': save_password,'auto_login': auto_login}, f)
     login_info_label.config(text=f"保存账号密码成功{timestamp}", font=("微软雅黑", 16))
 
 
@@ -202,7 +239,7 @@ if is_admin():
 else:
     root.title("登录校园网")
 
-root.geometry("400x290")
+root.geometry("400x360")
 
 # 获取用户的应用数据目录
 appdata_dir = os.getenv('APPDATA')
@@ -239,7 +276,7 @@ label_label = tk.Label(root, text="不重启和断网线\n就不会掉线(除了
 label_label.place(x=55, y=5)
 
 open_log_button = tk.Button(root, text="打开日志", command=open_log_folder, font=("微软雅黑", 14))
-open_log_button.place(x=10, y=175)
+open_log_button.place(x=10, y=225)
 
 user_label = tk.Label(root, text="用户名:", font=("微软雅黑", 14))
 user_label.place(x=25, y=65)
@@ -253,25 +290,32 @@ password_label.place(x=25, y=115)
 password_entry = tk.Entry(root, font=("微软雅黑", 14), show="*")
 password_entry.place(x=125, y=115)
 
+Link_mode_var = tk.IntVar()
+Link_mode_checkbutton = tk.Checkbutton(root, text="链接模式：", variable=Link_mode_var)
+Link_mode_checkbutton.place(x=10, y=150)
+
+Link_mode_entry = tk.Entry(root, font=("微软雅黑", 14))
+Link_mode_entry.place(x=125, y=155)
+
 opt_out_var = tk.IntVar()
 opt_out_checkbutton = tk.Checkbutton(root, text="自动退出", variable=opt_out_var)
-opt_out_checkbutton.place(x=15, y=145)
+opt_out_checkbutton.place(x=15, y=185)
 save_password_var = tk.IntVar()
 save_password_checkbutton = tk.Checkbutton(root, text="保存密码", variable=save_password_var)
-save_password_checkbutton.place(x=125, y=145)
+save_password_checkbutton.place(x=125, y=185)
 
 auto_login_var = tk.IntVar()
 auto_login_checkbutton = tk.Checkbutton(root, text="自动登录", variable=auto_login_var)
-auto_login_checkbutton.place(x=225, y=145)
+auto_login_checkbutton.place(x=225, y=185)
 
 login_button = tk.Button(root, text="登录", font=("微软雅黑", 14), command=login)
-login_button.place(x=125, y=175)
+login_button.place(x=125, y=225)
 
 save_button = tk.Button(root, text="保存", font=("微软雅黑", 14), command=save_info)
-save_button.place(x=200, y=175)
+save_button.place(x=200, y=225)
 
 login_info_label = tk.Label(root, font=("微软雅黑", 14),wraplength=370)
-login_info_label.place(x=15, y=225)
+login_info_label.place(x=15, y=275)
 
 if is_admin():
     login_info_label.config(text=f"当前拥有“管理员权限”谨慎操作\n点击“开机自启”或“关闭开机自启”设置")
@@ -279,7 +323,7 @@ else:
     login_info_label.config(text=f"需要“管理员权限”才能设置开机自启\n点击“获取权限”按钮或手动获取权限")
     
 auto_start_button = tk.Button(root, font=("微软雅黑", 14))
-auto_start_button.place(x=275, y=175)
+auto_start_button.place(x=275, y=225)
 
 
 if is_admin():
@@ -291,8 +335,10 @@ else:
 if os.path.exists(login_info_path):
     with open(login_info_path, 'r') as f:
         login_info = json.load(f)
-        user_entry.insert(0, login_info['username'])
-        password_entry.insert(0, login_info['password'])
+        user_entry.insert(0, login_info.get('username',''))
+        password_entry.insert(0, login_info.get('password',''))
+        Link_mode_entry.insert(0, login_info.get('Link',''))
+        Link_mode_var.set(bool(login_info.get('Link_mode', 0)))
         auto_login_var.set(bool(login_info.get('auto_login', 0)))
         opt_out_var.set(bool(login_info.get('opt_out', 0)))
         save_password_var.set(bool(login_info.get('save_password', 0)))
