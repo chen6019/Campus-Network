@@ -62,8 +62,19 @@ def login():
 
 def get_url(username, password):
     timestamp = int(time.time() * 1000)
-    url = f"http://172.17.100.200:801/eportal/?c=GetMsg&a=loadToken&cal`lback=jQuery_{timestamp}&account={username}&password={password}&mac=000000000000&_={timestamp}"
+    base_url = "http://172.17.100.200:801/eportal/"
+    params = {
+        "c": "GetMsg",
+        "a": "loadToken",
+        "callback": f"jQuery_{timestamp}",
+        "account": username,
+        "password": password,
+        "mac": "000000000000",
+        "_": timestamp
+    }
+    url = f"{base_url}?{'&'.join(f'{key}={value}' for key, value in params.items())}"
     return url
+
 
 def send_request(url):
     Link_mode = bool(Link_mode_var.get())
